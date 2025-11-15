@@ -86,3 +86,22 @@ func ExecCommand(cli *client.Client, ctx context.Context, containerID string, co
 	}
 	return outBuf.String(), nil
 }
+
+func SearchRunningContainers(name string) (bool, error) {
+	cli, ctx, err := GetClient()
+	if err != nil {
+		return false, err
+	}
+	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{
+		All: true,
+	})
+	if err != nil {
+		return false, err
+	}
+	for _, container := range containers.Items {
+		if container.Names[0] == name {
+			return true, nil
+		}
+	}
+	return false, nil
+}
