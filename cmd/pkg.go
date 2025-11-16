@@ -15,6 +15,8 @@ var (
 
 func init() {
 	pkgCreateCmd.Flags().StringVarP(&workspace, "workspace", "w", "", "Workspace name")
+	pkgRunCmd.Flags().StringVarP(&workspace, "workspace", "w", "", "Workspace name")
 	pkgCreateCmd.Flags().StringVarP(&depsFile, "dependencies", "d", "", "Dependencies file path")
 	pkgCmd.AddCommand(pkgCreateCmd)
+	pkgCmd.AddCommand(pkgRunCmd)
 }

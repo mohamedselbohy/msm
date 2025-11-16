@@ -13,6 +13,7 @@ var pkgCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create new package in a specific workspace",
 	Long:  "Create new package in a specific workspace",
+	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 		if workspace == "" {

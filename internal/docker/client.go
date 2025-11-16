@@ -36,6 +36,7 @@ func RunContainer(cli *client.Client, ctx context.Context, codePath string, name
 	resp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{
 		Name: "ros-" + name,
 		Config: &container.Config{
+			Env:       []string{"DISPLAY=" + os.Getenv("DISPLAY")},
 			Image:     "osrf/ros:noetic-desktop-full",
 			Tty:       true,
 			OpenStdin: true,
@@ -64,6 +65,26 @@ func RunContainer(cli *client.Client, ctx context.Context, codePath string, name
 		fmt.Println("Error starting container:", err)
 		return
 	}
+}
+
+func ExecBackgroundCommand(cli *client.Client, ctx context.Context, containerID string, command []string) error {
+	execResp, err := cli.ExecCreate(ctx, containerID, client.ExecCreateOptions{
+		Cmd:          command,
+		AttachStdout: false,
+		AttachStderr: false,
+		TTY:          false,
+	})
+	if err != nil {
+		return fmt.Errorf("exec Create error: %w", err)
+	}
+	_, err = cli.ExecStart(ctx, execResp.ID, client.ExecStartOptions{
+		Detach: true,
+		TTY:    false,
+	})
+	if err != nil {
+		return fmt.Errorf("exec start error: %w", err)
+	}
+	return nil
 }
 
 func ExecCommand(cli *client.Client, ctx context.Context, containerID string, command []string) (string, error) {
