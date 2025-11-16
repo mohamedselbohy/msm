@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
@@ -87,6 +90,42 @@ func ExecCommand(cli *client.Client, ctx context.Context, containerID string, co
 	return outBuf.String(), nil
 }
 
+func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID string) error {
+	execResp, err := cli.ExecCreate(ctx, containerID, client.ExecCreateOptions{
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		TTY:          true,
+		Cmd:          []string{"/bin/bash", "-c", "stty -echo; exec bash"},
+	})
+	if err != nil {
+		return err
+	}
+	attachResp, err := cli.ExecAttach(ctx, execResp.ID, client.ExecAttachOptions{
+		TTY: true,
+	})
+	if err != nil {
+		return err
+	}
+	defer attachResp.Close()
+	go io.Copy(os.Stdout, attachResp.Reader)
+	go func() {
+		io.Copy(attachResp.Conn, os.Stdin)
+		attachResp.CloseWrite()
+	}()
+	for {
+		inspectResp, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
+		if err != nil {
+			return err
+		}
+		if !inspectResp.Running {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	return err
+}
+
 func SearchRunningContainers(name string) (bool, error) {
 	cli, ctx, err := GetClient()
 	if err != nil {
@@ -99,9 +138,28 @@ func SearchRunningContainers(name string) (bool, error) {
 		return false, err
 	}
 	for _, container := range containers.Items {
-		if container.Names[0] == name {
+		if container.Names[0][1:] == name {
 			return true, nil
 		}
 	}
 	return false, nil
+}
+
+func ListRunningContainers(cli *client.Client, ctx context.Context) ([]string, error) {
+	filterArgs := client.Filters{}
+	filterArgs.Add("ancestor", "osrf/ros:noetic-desktop-full")
+
+	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{
+		Filters: filterArgs,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var workspaces []string
+	for _, container := range containers.Items {
+		if strings.HasPrefix(container.Names[0][1:], "ros-") {
+			workspaces = append(workspaces, container.Names[0][5:])
+		}
+	}
+	return workspaces, nil
 }
