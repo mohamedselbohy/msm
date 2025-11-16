@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/client"
+	"golang.org/x/term"
 )
 
 var (
@@ -117,7 +120,7 @@ func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID stri
 		AttachStdout: true,
 		AttachStderr: true,
 		TTY:          true,
-		Cmd:          []string{"/bin/bash", "-c", "stty -echo; exec bash"},
+		Cmd:          []string{"/bin/bash"},
 	})
 	if err != nil {
 		return err
@@ -129,22 +132,27 @@ func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID stri
 		return err
 	}
 	defer attachResp.Close()
+	oldstate, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		return err
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldstate)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	// instead of handling sigs
 	go io.Copy(os.Stdout, attachResp.Reader)
-	go func() {
-		io.Copy(attachResp.Conn, os.Stdin)
-		attachResp.CloseWrite()
-	}()
+	go io.Copy(attachResp.Conn, os.Stdin)
 	for {
-		inspectResp, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
+		inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
 		if err != nil {
 			return err
 		}
-		if !inspectResp.Running {
+		if !inspect.Running {
 			break
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
-	return err
+	return nil
 }
 
 func SearchRunningContainers(name string) (bool, error) {
