@@ -163,3 +163,21 @@ func ListRunningContainers(cli *client.Client, ctx context.Context) ([]string, e
 	}
 	return workspaces, nil
 }
+
+func StopAndDeleteContainer(cli *client.Client, ctx context.Context, containerID string) error {
+	timeout := 5
+	_, err := cli.ContainerStop(ctx, containerID, client.ContainerStopOptions{
+		Timeout: &timeout,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = cli.ContainerRemove(ctx, containerID, client.ContainerRemoveOptions{
+		Force:         true,
+		RemoveVolumes: true,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

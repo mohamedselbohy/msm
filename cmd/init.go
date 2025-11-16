@@ -16,6 +16,17 @@ var initCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
+
+		if exists, err := docker.SearchRunningContainers("ros-" + name); err == nil {
+			if exists {
+				fmt.Println("Error: Workspace already exists")
+				return
+			}
+		} else {
+			fmt.Println("Error: Failed to search for containers")
+			return
+		}
+
 		cwd, err := os.Getwd()
 		if err != nil {
 			fmt.Println("Failed to retrieve current working directory:", err)

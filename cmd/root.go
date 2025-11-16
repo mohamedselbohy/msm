@@ -18,6 +18,7 @@ func init() {
 	rootCmd.AddCommand(pkgCmd)
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(removeCmd)
 }
 
 func Execute() {
