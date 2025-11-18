@@ -58,6 +58,15 @@ func RunContainer(cli *client.Client, ctx context.Context, codePath string, name
 					Target: "/root/ros_ws",
 				},
 			},
+			Resources: container.Resources{
+				Devices: []container.DeviceMapping{
+					{
+						PathOnHost:        "/dev/dri",
+						PathInContainer:   "/dev/dri",
+						CgroupPermissions: "rwm",
+					},
+				},
+			},
 		},
 	})
 	if err != nil {
