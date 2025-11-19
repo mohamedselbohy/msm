@@ -35,12 +35,16 @@ func CompleteWorkspaces(cmd *cobra.Command, args []string, toComplete string) ([
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(deactivateCmd)
+	rootCmd.AddCommand(activateCmd)
 	rootCmd.AddCommand(pkgCmd)
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(removeCmd)
 	execCmd.ValidArgsFunction = CompleteWorkspaces
 	removeCmd.ValidArgsFunction = CompleteWorkspaces
+	activateCmd.ValidArgsFunction = CompleteWorkspaces
+	deactivateCmd.ValidArgsFunction = CompleteWorkspaces
 }
 
 func Execute() {
