@@ -140,6 +140,17 @@ func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID stri
 	if err != nil {
 		return err
 	}
+	width, height, err := term.GetSize(int(os.Stdin.Fd()))
+	if err != nil {
+		return err
+	}
+	_, err = cli.ExecResize(ctx, execResp.ID, client.ExecResizeOptions{
+		Height: uint(height),
+		Width:  uint(width),
+	})
+	if err != nil {
+		return err
+	}
 	defer attachResp.Close()
 	oldstate, err := term.MakeRaw(int(os.Stdin.Fd()))
 	if err != nil {
