@@ -41,17 +41,9 @@ var pkgRunCmd = &cobra.Command{
 		} else {
 			executable = "main.py"
 		}
-		output, err := docker.ExecCommand(cli, ctx, "ros-"+workspace, []string{
+		err = docker.EngageCommand(cli, ctx, "ros-"+workspace, []string{
 			"bash", "-c",
 			`source /opt/ros/noetic/setup.bash && source /root/ros_ws/devel/setup.bash && rosrun ` + pkg + ` ` + executable,
-		})
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(output))
-		_, err = docker.ExecCommand(cli, ctx, "ros-"+workspace, []string{
-			"bash", "-c",
-			`source /opt/ros/noetic/setup.bash && pkill -9 rosmaster && pkill -9 rosout`,
 		})
 		if err != nil {
 			return err

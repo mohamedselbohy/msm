@@ -123,6 +123,58 @@ func ExecCommand(cli *client.Client, ctx context.Context, containerID string, co
 	return outBuf.String(), nil
 }
 
+func EngageCommand(cli *client.Client, ctx context.Context, containerID string, command []string) error {
+	execResp, err := cli.ExecCreate(ctx, containerID, client.ExecCreateOptions{
+		Cmd:          command,
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+		TTY:          true,
+	})
+	if err != nil {
+		return fmt.Errorf("exec Create error: %w", err)
+	}
+	attachResp, err := cli.ExecAttach(ctx, execResp.ID, client.ExecAttachOptions{
+		TTY: true,
+	})
+	if err != nil {
+		return fmt.Errorf("exec attach error: %w", err)
+	}
+	defer attachResp.Close()
+
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		return err
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		for sig := range sigs {
+			attachResp.Conn.Write([]byte{3}) // Ctrl+C
+			_ = sig
+		}
+	}()
+
+	go io.Copy(attachResp.Conn, os.Stdin)
+	_, err = io.Copy(os.Stdout, attachResp.Reader)
+	if err != nil {
+		return fmt.Errorf("copy error: %w", err)
+	}
+	for {
+		inspect, err := cli.ExecInspect(ctx, execResp.ID, client.ExecInspectOptions{})
+		if err != nil {
+			return err
+		}
+		if !inspect.Running {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	return nil
+}
+
 func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID string) error {
 	execResp, err := cli.ExecCreate(ctx, containerID, client.ExecCreateOptions{
 		AttachStdin:  true,
@@ -145,7 +197,7 @@ func ExecIntoContainer(cli *client.Client, ctx context.Context, containerID stri
 		return err
 	}
 	_, err = cli.ExecResize(ctx, execResp.ID, client.ExecResizeOptions{
-		Height: uint(height),
+		Height: uint(10 * height),
 		Width:  uint(width),
 	})
 	if err != nil {
