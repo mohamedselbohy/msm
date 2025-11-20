@@ -7,11 +7,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var pkgRunCmd = &cobra.Command{
-	Use:   "run",
-	Short: "Run a package with executable",
-	Long:  "Run a package with executable",
-	Args:  cobra.MinimumNArgs(1),
+var pkgLaunchCmd = &cobra.Command{
+	Use:   "launch",
+	Short: "Launch a package from a launch file",
+	Long:  "Run a package from a launch file",
+	Args:  cobra.MinimumNArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if workspace == "" {
 			return fmt.Errorf("error: You must select a workspace")
@@ -27,23 +27,14 @@ var pkgRunCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		err = docker.ExecBackgroundCommand(cli, ctx, "ros-"+workspace, []string{
-			"bash", "-c",
-			`source /opt/ros/noetic/setup.bash && roscore`,
-		})
-		if err != nil {
-			return err
-		}
 		var executable string
 		pkg := args[0]
 		if len(args) > 1 {
 			executable = args[1]
-		} else {
-			executable = "main.py"
 		}
 		err = docker.EngageCommand(cli, ctx, "ros-"+workspace, []string{
 			"bash", "-c",
-			`source /opt/ros/noetic/setup.bash && source /root/ros_ws/devel/setup.bash && rosrun ` + pkg + ` ` + executable,
+			`source /opt/ros/noetic/setup.bash && source /root/ros_ws/devel/setup.bash && roslaunch ` + pkg + ` ` + executable,
 		})
 		if err != nil {
 			return err
