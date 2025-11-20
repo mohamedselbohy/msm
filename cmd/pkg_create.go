@@ -41,7 +41,7 @@ var pkgCreateCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		output, err := docker.ExecCommand(cli, ctx, "ros-"+workspace, []string{"bash", "-c", `source /opt/ros/noetic/setup.bash && cd /root/ros_ws/src && catkin_create_pkg ` + name + " " + depsLine + ` && cd ` + name + ` && mkdir -p script && touch script/main.py && sudo chmod +x script/main.py`})
+		output, err := docker.ExecCommand(cli, ctx, "ros-"+workspace, []string{"bash", "-c", `source /opt/ros/noetic/setup.bash && cd /root/ros_ws/src && catkin_create_pkg ` + name + " " + depsLine + ` && cd ` + name + ` && mkdir -p scripts && touch script/main.py && sudo chmod +x script/main.py`})
 		if err != nil {
 			return err
 		}
