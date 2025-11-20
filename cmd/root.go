@@ -39,6 +39,7 @@ func init() {
 	rootCmd.AddCommand(activateCmd)
 	rootCmd.AddCommand(gazeboCmd)
 	rootCmd.AddCommand(rvizCmd)
+	rootCmd.AddCommand(nodegraphCmd)
 	rootCmd.AddCommand(pkgCmd)
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(listCmd)
@@ -49,6 +50,7 @@ func init() {
 	deactivateCmd.ValidArgsFunction = CompleteWorkspaces
 	gazeboCmd.ValidArgsFunction = CompleteWorkspaces
 	rvizCmd.ValidArgsFunction = CompleteWorkspaces
+	nodegraphCmd.ValidArgsFunction = CompleteWorkspaces
 }
 
 func Execute() {
