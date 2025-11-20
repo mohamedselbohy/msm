@@ -9,8 +9,8 @@ import (
 
 var nodegraphCmd = &cobra.Command{
 	Use:   "nodegraph",
-	Short: "Launch Gazebo",
-	Long:  "Launch Gazebo",
+	Short: "Visualize running nodes and topics",
+	Long:  "Visualize running nodes and topics\n msm nodegraph <workspace>",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		workspace := args[0]
