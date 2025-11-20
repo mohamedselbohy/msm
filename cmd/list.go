@@ -28,7 +28,7 @@ var listCmd = &cobra.Command{
 			return
 		}
 		for i, ws := range workspaces {
-			fmt.Println(strconv.Itoa(i+1) + ": " + ws)
+			fmt.Println(strconv.Itoa(i+1) + ": " + ws + "\t(" + docker.IsActive(cli, ctx, "ros-"+ws) + ")")
 		}
 	},
 }

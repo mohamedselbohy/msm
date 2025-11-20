@@ -282,3 +282,18 @@ func StopAndDeleteContainer(cli *client.Client, ctx context.Context, containerID
 	}
 	return nil
 }
+
+func IsActive(cli *client.Client, ctx context.Context, contaienrID string) string {
+	output, err := ExecCommand(cli, ctx, contaienrID, []string{
+		"bash", "-c",
+		"ps aux | grep rosmaster",
+	})
+	if err != nil {
+		return "irresponsive"
+	}
+	if strings.Contains(output, "/opt/ros/noetic/bin/rosmaster") {
+		return "active"
+	} else {
+		return "inactive"
+	}
+}
