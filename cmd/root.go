@@ -45,6 +45,7 @@ func init() {
 	rootCmd.AddCommand(execCmd)
 	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(removeCmd)
+	removeCmd.Flags().BoolP("recursive", "r", false, "Remove Workspace Files.")
 	execCmd.ValidArgsFunction = CompleteWorkspaces
 	removeCmd.ValidArgsFunction = CompleteWorkspaces
 	activateCmd.ValidArgsFunction = CompleteWorkspaces

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mohamedselbohy/msm/internal/docker"
 	"github.com/spf13/cobra"
@@ -15,6 +16,20 @@ var removeCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cli, ctx, err := docker.GetClient()
 		workspace := args[0]
+		recursive, _ := cmd.Flags().GetBool("recursive")
+		var workspaceDir string
+		if recursive {
+			if err := docker.EngageCommand(cli, ctx, "ros-"+workspace, []string{"bash", "-c", "rm -rf /root/ros_ws/*"}); err != nil {
+				return err
+			}
+			workspaceDir, err = docker.GetWorkspaceMount(cli, ctx, workspace)
+			if err != nil {
+				return err
+			}
+			if err = os.RemoveAll(workspaceDir); err != nil {
+				return err
+			}
+		}
 		if err != nil {
 			return err
 		}

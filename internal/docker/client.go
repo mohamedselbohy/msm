@@ -301,6 +301,19 @@ func ListRunningContainers(cli *client.Client, ctx context.Context) ([]string, e
 	return workspaces, nil
 }
 
+func GetWorkspaceMount(cli *client.Client, ctx context.Context, workspace string) (string, error) {
+	inspRes, err := cli.ContainerInspect(ctx, "ros-"+workspace, client.ContainerInspectOptions{})
+	if err != nil {
+		return "", err
+	}
+	for _, mount := range inspRes.Container.Mounts {
+		if mount.Destination == "/root/ros_ws" {
+			return mount.Source, nil
+		}
+	}
+	return "", fmt.Errorf("err: didn't find mounts on container (this should never have happened!!)") // Should never happen
+}
+
 func StopAndDeleteContainer(cli *client.Client, ctx context.Context, containerID string) error {
 	timeout := 5
 	_, err := cli.ContainerStop(ctx, containerID, client.ContainerStopOptions{
