@@ -35,7 +35,23 @@ func GetClient() (*client.Client, context.Context, error) {
 	return cli, ctx, nil
 }
 
+func pullImage(cli *client.Client, ctx context.Context) error {
+	reader, err := cli.ImagePull(ctx, "osrf/ros:noetic-desktop-full", client.ImagePullOptions{})
+	if err != nil {
+		return err
+	}
+	io.Copy(io.Discard, reader)
+	fmt.Println("Pulling Image: osrf/ros:noetic-desktop-full")
+	return nil
+}
+
 func RunContainer(cli *client.Client, ctx context.Context, codePath string, name string) {
+	if check, err := imageExists(cli, ctx); err != nil {
+		fmt.Println("Error contacting docker daemon:", err)
+		return
+	} else if !check {
+		pullImage(cli, ctx)
+	}
 	resp, err := cli.ContainerCreate(ctx, client.ContainerCreateOptions{
 		Name: "ros-" + name,
 		Config: &container.Config{
@@ -77,6 +93,25 @@ func RunContainer(cli *client.Client, ctx context.Context, codePath string, name
 		fmt.Println("Error starting container:", err)
 		return
 	}
+}
+
+func StartContainer(cli *client.Client, ctx context.Context, workspace string) error {
+	if _, err := cli.ContainerStart(ctx, "ros-"+workspace, client.ContainerStartOptions{}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func imageExists(cli *client.Client, ctx context.Context) (bool, error) {
+	filterArgs := client.Filters{}
+	filterArgs.Add("reference", "osrf/ros:noetic-desktop-full")
+	images, err := cli.ImageList(ctx, client.ImageListOptions{
+		Filters: filterArgs,
+	})
+	if err != nil {
+		return false, err
+	}
+	return len(images.Items) > 0, err
 }
 
 func ExecBackgroundCommand(cli *client.Client, ctx context.Context, containerID string, command []string) error {
@@ -252,6 +287,7 @@ func ListRunningContainers(cli *client.Client, ctx context.Context) ([]string, e
 
 	containers, err := cli.ContainerList(ctx, client.ContainerListOptions{
 		Filters: filterArgs,
+		All:     true,
 	})
 	if err != nil {
 		return nil, err

@@ -35,6 +35,7 @@ func CompleteWorkspaces(cmd *cobra.Command, args []string, toComplete string) ([
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(reviveCmd)
 	rootCmd.AddCommand(deactivateCmd)
 	rootCmd.AddCommand(activateCmd)
 	rootCmd.AddCommand(gazeboCmd)
@@ -51,6 +52,7 @@ func init() {
 	gazeboCmd.ValidArgsFunction = CompleteWorkspaces
 	rvizCmd.ValidArgsFunction = CompleteWorkspaces
 	nodegraphCmd.ValidArgsFunction = CompleteWorkspaces
+	reviveCmd.ValidArgsFunction = CompleteWorkspaces
 }
 
 func Execute() {
