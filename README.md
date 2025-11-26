@@ -11,7 +11,7 @@ wget -O msm_amd64.deb https://github.com/mohamedselbohy/msm/releases/latest/down
 sudo apt install -y ./msm_amd64.deb
 rm msm_amd64.deb
 ```
-
+or run installation script `./install.sh`
 ## Build Instructions
 At the project's root directory just simply execute these commands.
 ```bash
