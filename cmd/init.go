@@ -47,7 +47,7 @@ var initCmd = &cobra.Command{
 			return
 		}
 		docker.RunContainer(client, ctx, projectpath, name)
-		output, err := docker.ExecCommand(client, ctx, "ros-"+name, []string{"bash", "-c", `echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc`})
+		output, err := docker.ExecCommand(client, ctx, "ros-"+name, []string{"bash", "-c", `echo -e "source /opt/ros/noetic/setup.bash\nsource /root/ros_ws/devel/setup.bash" >> ~/.bashrc`})
 		if err != nil {
 			fmt.Println("Execution Failed:", err)
 			return
