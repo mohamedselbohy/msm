@@ -3,6 +3,26 @@ This CLI tool utilizes the ROS docker image to create and handle ROS workspaces 
 
 > [!NOTE]
 > Completions are available and the tool is well documented under `msm -h` or `msm help` or `msm --help`
+## Installation
+Install the latest *.deb package from the releases by the following commands.
+```bash
+cd /tmp
+wget -O msm_amd64.deb https://github.com/mohamedselbohy/msm/releases/latest/download/msm_amd64.deb
+sudo apt install -y ./msm_amd64.deb
+rm msm_amd64.deb
+```
+
+## Build Instructions
+At the project's root directory just simply execute these commands.
+```bash
+go build -o msm
+sudo ln -s "$(pwd)/msm" /usr/local/bin/msm
+```
+Then ensure installation with
+```bash
+msm --help
+```
+
 
 ## Autocompletions
 Fish: `msm completion fish > ~/.config/fish/completions/msm.fish`
